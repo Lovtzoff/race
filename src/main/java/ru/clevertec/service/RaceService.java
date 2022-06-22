@@ -10,8 +10,8 @@ import java.util.concurrent.CountDownLatch;
  */
 public class RaceService {
 
-    //Создаем CountDownLatch на 8 "условий"
-    private static final CountDownLatch START = new CountDownLatch(8);
+    // Количество команд для запуска гонки (команды: На старт, Внимание, Марш)
+    private final int numberOfCommand = 3;
 
     /**
      * Запуск гонки.
@@ -21,13 +21,16 @@ public class RaceService {
      * @throws InterruptedException the interrupted exception
      */
     public void raceStart(int numberOfCars, int trackLength) throws InterruptedException {
+        // Создаем CountDownLatch на кол-во условий = (кол-во машин + кол-во команд)
+        CountDownLatch START = new CountDownLatch(numberOfCars + numberOfCommand);
+
         for (int i = 0; i < numberOfCars; i++) {
             new Thread(new CarThread(START, trackLength, new Car(i, (int) (Math.random() * 100 + 50)))).start();
             Thread.sleep(1000);
         }
 
-        while (START.getCount() > 3) {  //Проверяем, собрались ли все автомобили
-            Thread.sleep(100);    //у стартовой прямой. Если нет, ждем 100ms
+        while (START.getCount() > numberOfCommand) {  //Проверяем, собрались ли все автомобили
+            Thread.sleep(100);                  //у стартовой прямой. Если нет, ждем 100ms
         }
 
         Thread.sleep(1000);

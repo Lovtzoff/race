@@ -1,14 +1,17 @@
 package ru.clevertec.model;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.concurrent.CountDownLatch;
 
 /**
  * Класс потока автомобиля.
  */
+@Slf4j
 public class CarThread implements Runnable {
 
     private final CountDownLatch START; // замок с обратным отсчетом
-    private final Integer trackLength;
+    private Integer trackLength;
     private final Car car;
 
     /**
@@ -27,15 +30,23 @@ public class CarThread implements Runnable {
     @Override
     public void run() {
         try {
-            System.out.printf("Автомобиль №%d подъехал к стартовой прямой.\n", car.getNumber());
-            //Автомобиль подъехал к стартовой прямой - условие выполнено
-            //уменьшаем счетчик на 1
+            log.info("Автомобиль №" + car.getNumber() + " подъехал к стартовой прямой.");
+            //Автомобиль подъехал к стартовой прямой — условие выполнено
+            //уменьшаем счетчик на 1.
             START.countDown();
             //метод await() блокирует поток, вызвавший его, до тех пор, пока
-            //счетчик CountDownLatch не станет равен 0
+            //счетчик CountDownLatch не станет равен 0.
             START.await();
-            Thread.sleep(trackLength / car.getSpeed()); //ждем пока проедет трассу
-            System.out.printf("Автомобиль №%d финишировал!\n", car.getNumber());
+            Thread.sleep(1000);
+
+            // Каждую секунду логируем сколько до финиша.
+            while (trackLength > 0) {
+                log.info("Автомобилю №" + car.getNumber() + " осталось до финиша " + trackLength + ".");
+                trackLength -= car.getSpeed();
+                Thread.sleep(1000);
+            }
+
+            log.info("Автомобиль №" + car.getNumber() + " финишировал!");
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
